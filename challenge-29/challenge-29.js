@@ -87,21 +87,12 @@
         $tr.appendChild($tdRemove);
 
         $tdRemove.addEventListener('click', this.removerCar, false);
-        app.clearFields();
 
         return $fragmet.appendChild($tr);
       },
 
       removerCar: function removerCar() {
         this.parentNode.remove();
-      },
-
-      clearFields: function clearFields() {
-        $('[data-js="image"]').get().value = '';
-        $('[data-js="brand-model"]').get().value = '';
-        $('[data-js="year"]').get().value = '';
-        $('[data-js="plate"]').get().value = '';
-        $('[data-js="color"]').get().value = '';
       },
 
       companyInfo: function companyInfo() {
