@@ -47,8 +47,11 @@
 
       handleSubmitForm: function handleSubmitForm(event) {
         event.preventDefault();
+        var car = app.setCars();
         var $tableCar = $('[data-js="table-car"]').get();
-        $tableCar.appendChild(app.createNewCar());
+        $tableCar.appendChild(app.createNewCar(car));
+        app.postDataStore();
+        app.cleanFileds();
       },
 
       createNewCar: function createNewCar() {
@@ -60,11 +63,17 @@
         var $tdYear = doc.createElement('td');
         var $tdPlate = doc.createElement('td');
         var $tdColor = doc.createElement('td');
+        var $tdRemove = doc.createElement('td');
+        var $tdRemoveText = doc.createTextNode('X');
 
         $image.setAttribute('src', $('[data-js="image"]').get().value);
+        $tdRemove.setAttribute(
+          'style',
+          'color: white; text-align: center; border-radius: 5px; background: red;'
+        );
         $tdImage.appendChild($image);
+        $tdRemove.appendChild($tdRemoveText);
 
-        // $tdImage.textContent = $('[data-js="image"]').get().value;
         $tdBrand.textContent = $('[data-js="brand-model"]').get().value;
         $tdYear.textContent = $('[data-js="year"]').get().value;
         $tdPlate.textContent = $('[data-js="plate"]').get().value;
@@ -75,8 +84,24 @@
         $tr.appendChild($tdYear);
         $tr.appendChild($tdPlate);
         $tr.appendChild($tdColor);
+        $tr.appendChild($tdRemove);
+
+        $tdRemove.addEventListener('click', this.removerCar, false);
+        app.clearFields();
 
         return $fragmet.appendChild($tr);
+      },
+
+      removerCar: function removerCar() {
+        this.parentNode.remove();
+      },
+
+      clearFields: function clearFields() {
+        $('[data-js="image"]').get().value = '';
+        $('[data-js="brand-model"]').get().value = '';
+        $('[data-js="year"]').get().value = '';
+        $('[data-js="plate"]').get().value = '';
+        $('[data-js="color"]').get().value = '';
       },
 
       companyInfo: function companyInfo() {
@@ -84,6 +109,66 @@
         ajax.open('GET', 'company.json', true);
         ajax.send();
         ajax.addEventListener('readystatechange', this.getCompanyInfo, false);
+      },
+
+      setCars: function setCars() {
+        var cars = {
+          image: $('[data-js="image"]').get().value,
+          brandModel: $('[data-js="brand-model"]').get().value,
+          year: $('[data-js="year"]').get().value,
+          plate: $('[data-js="plate"]').get().value,
+          color: $('[data-js="color"]').get().value
+        };
+        return cars;
+      },
+
+      getCars: function getCars() {
+        var ajax = new XMLHttpRequest();
+        ajax.open('GET', 'http://localhost:3000/car', true);
+        ajax.send();
+        ajax.addEventListener('readystatechange', app.handleDataStore, false);
+      },
+
+      handleDataStore: function handleDataStore() {
+        if (app.isRequestOk()) {
+          return;
+        }
+        var cars = JSON.parse(this.responseText);
+        var $tableCar = $('[data-js="table-car"]').get();
+
+        cars.forEach(function(car) {
+          var $fragment = app.createNewCar(car);
+          $tableCar.appendChild($fragment);
+        });
+      },
+
+      postDataStore: function postDataStore() {
+        var car = app.setCars();
+        var ajax = new XMLHttpRequest();
+        ajax.open('POST', 'http://localhost:3000/car', true);
+        ajax.setRequestHeader(
+          'Content-Type',
+          'application/x-www-form-urlencoded'
+        );
+        ajax.send(
+          'image=' +
+            car.image +
+            '&brandModel=' +
+            car.brandModel +
+            '&year=' +
+            car.year +
+            '&plate=' +
+            car.plate +
+            '&color=' +
+            car.color
+        );
+        ajax.addEventListener(
+          'readystatechange',
+          function() {
+            console.log('Carro cadastrado com sucesso.');
+          },
+          false
+        );
       },
 
       getCompanyInfo: function getCompanyInfo() {
@@ -101,6 +186,14 @@
 
       isRequestOk: function isRequestOk() {
         return this.readyState === 4 && this.status === 200;
+      },
+
+      cleanFileds: function cleanFileds() {
+        $('[data-js="image"]').get().value = '';
+        $('[data-js="brand-model"]').get().value = '';
+        $('[data-js="year"]').get().value = '';
+        $('[data-js="plate"]').get().value = '';
+        $('[data-js="color"]').get().value = '';
       }
     };
   })(document);
